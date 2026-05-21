@@ -54,8 +54,8 @@ konfetti-compose = { group = "nl.dionsegijn", name = "konfetti-compose", version
 # Shimmer
 compose-shimmer = { group = "com.valentinilk.shimmer", name = "compose-shimmer", version.ref = "shimmer" }
 
-# Drag-Drop-Swipe
-drag-drop-swipe-lazycolumn = { group = "com.ernestoyaquello.dragdropswipelazycolumn", name = "drag-drop-swipe-lazycolumn", version.ref = "dragDropSwipe" }
+# Drag-Drop-Swipe (JitPack)
+drag-drop-swipe-lazycolumn = { group = "com.github.ernestoyaquello", name = "DragDropSwipeLazyColumn", version.ref = "dragDropSwipe" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

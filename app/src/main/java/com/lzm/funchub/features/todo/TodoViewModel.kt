@@ -18,9 +18,4 @@ class TodoViewModel : ViewModel() {
     fun deleteTodo(id: Long) {
         TodoRepository.delete(id)
     }
-
-    fun moveTodo(fromIndex: Int, toIndex: Int, filter: TodoFilter) {
-        if (filter != TodoFilter.ALL) return
-        TodoRepository.move(fromIndex, toIndex)
-    }
 }

@@ -1,10 +1,8 @@
 package com.lzm.funchub.features.todo
 
-import android.graphics.Color as AndroidColor
-import androidx.compose.animation.*
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -17,17 +15,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ernestoyaquello.dragdropswipe.DragDropSwipeDefaults
-import com.ernestoyaquello.dragdropswipe.DragDropSwipeLazyColumn
-import com.ernestoyaquello.dragdropswipe.DraggableSwipeableItemContent
-import com.ernestoyaquello.dragdropswipe.SwipeDirection
 import com.lzm.funchub.features.todo.data.Todo
-import com.valentinilk.shimmer.shimmer
-import nl.dionsegijn.konfetti.compose.KonfettiView
-import nl.dionsegijn.konfetti.compose.OnKonfettiListener
-import nl.dionsegijn.konfetti.core.Party
-import nl.dionsegijn.konfetti.core.Position
-import nl.dionsegijn.konfetti.core.emitter.Emitter
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -41,7 +29,6 @@ fun TodoScreen(onBack: () -> Unit) {
     var filter by remember { mutableStateOf(TodoFilter.ALL) }
     var showAddDialog by remember { mutableStateOf(false) }
     var newTitle by remember { mutableStateOf("") }
-    var showConfetti by remember { mutableStateOf(false) }
 
     val displayTodos = remember(filter, allTodos) {
         when (filter) {
@@ -54,208 +41,147 @@ fun TodoScreen(onBack: () -> Unit) {
     val totalCount = allTodos.size
     val progress = if (totalCount > 0) doneCount.toFloat() / totalCount else 0f
 
-    // 全部完成触发彩带
-    LaunchedEffect(progress) {
-        if (progress == 1f && totalCount > 0) showConfetti = true
-    }
-
-    val confettiColors = listOf(
-        AndroidColor.RED, AndroidColor.BLUE, AndroidColor.GREEN,
-        AndroidColor.YELLOW, AndroidColor.MAGENTA, AndroidColor.CYAN
-    )
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("待办事项") },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回")
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                )
-            },
-            floatingActionButton = {
-                ExtendedFloatingActionButton(
-                    onClick = { showAddDialog = true },
-                    icon = { Icon(Icons.Default.Add, null) },
-                    text = { Text("新增") },
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        ) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            ) {
-                // ── 进度卡片 + 微光效果 ──
-                if (totalCount > 0) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .shimmer(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                        )
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    "完成进度",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    "$doneCount / $totalCount",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                            Spacer(Modifier.height(8.dp))
-                            LinearProgressIndicator(
-                                progress = { progress },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(8.dp)
-                                    .clip(MaterialTheme.shapes.small),
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                            )
-                            if (progress == 1f) {
-                                Spacer(Modifier.height(4.dp))
-                                Text("全部完成！🎉", style = MaterialTheme.typography.labelMedium)
-                            }
-                        }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("待办事项") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回")
                     }
-                }
-
-                // ── 筛选标签 ──
-                Row(
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { showAddDialog = true },
+                icon = { Icon(Icons.Default.Add, null) },
+                text = { Text("新增") },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            // ── 进度卡片 ──
+            if (totalCount > 0) {
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                    )
                 ) {
-                    FilterChip(
-                        selected = filter == TodoFilter.ALL,
-                        onClick = { filter = TodoFilter.ALL },
-                        label = { Text("全部") }
-                    )
-                    FilterChip(
-                        selected = filter == TodoFilter.ACTIVE,
-                        onClick = { filter = TodoFilter.ACTIVE },
-                        label = { Text("进行中") }
-                    )
-                    FilterChip(
-                        selected = filter == TodoFilter.COMPLETED,
-                        onClick = { filter = TodoFilter.COMPLETED },
-                        label = { Text("已完成") }
-                    )
-                }
-
-                // ── 列表（拖拽排序 + 侧滑删除） ──
-                if (displayTodos.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                imageVector = when (filter) {
-                                    TodoFilter.COMPLETED -> Icons.Default.CheckCircle
-                                    TodoFilter.ACTIVE -> Icons.Default.TaskAlt
-                                    TodoFilter.ALL -> Icons.Default.Inbox
-                                },
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                            )
-                            Spacer(Modifier.height(12.dp))
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
                             Text(
-                                when (filter) {
-                                    TodoFilter.COMPLETED -> "还没有已完成的任务"
-                                    TodoFilter.ACTIVE -> "所有任务都完成啦！"
-                                    TodoFilter.ALL -> "点击下方按钮添加你的第一个任务"
-                                },
-                                style = MaterialTheme.typography.bodyLarge,
+                                "完成进度",
+                                style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            Text(
+                                "$doneCount / $totalCount",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
-                    }
-                } else {
-                    val listState = rememberLazyListState()
-
-                    DragDropSwipeLazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        onItemDragStart = { _ -> },
-                        onItemDragEnd = { fromIndex, toIndex ->
-                            viewModel.moveTodo(fromIndex, toIndex, filter)
-                        },
-                        onItemSwiped = { index, direction ->
-                            if (direction == SwipeDirection.EndToStart) {
-                                viewModel.deleteTodo(displayTodos[index].id)
-                            } else if (direction == SwipeDirection.StartToEnd) {
-                                viewModel.toggleTodo(displayTodos[index].id)
-                            }
-                        },
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        dragDropSwipeDefaults = DragDropSwipeDefaults(
-                            swipeStartDirection = SwipeDirection.EndToStart,
-                            swipeEndDirection = SwipeDirection.StartToEnd,
-                            swipeStartIcon = Icons.Default.Delete,
-                            swipeEndIcon = Icons.Default.Check,
-                            swipeStartBackgroundColor = MaterialTheme.colorScheme.errorContainer,
-                            swipeEndBackgroundColor = MaterialTheme.colorScheme.primaryContainer
+                        Spacer(Modifier.height(8.dp))
+                        LinearProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(MaterialTheme.shapes.small),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
                         )
-                    ) {
-                        items(displayTodos, key = { it.id }) { todo ->
-                            DraggableSwipeableItemContent {
-                                TodoCard(
-                                    todo = todo,
-                                    onToggle = { viewModel.toggleTodo(todo.id) },
-                                    onDelete = { viewModel.deleteTodo(todo.id) }
-                                )
-                            }
+                        if (progress == 1f) {
+                            Spacer(Modifier.height(4.dp))
+                            Text("全部完成！🎉", style = MaterialTheme.typography.labelMedium)
                         }
                     }
                 }
             }
-        }
 
-        // ── 彩带庆祝特效 ──
-        if (showConfetti) {
-            KonfettiView(
-                modifier = Modifier.fillMaxSize(),
-                parties = listOf(
-                    Party(
-                        angle = 270,
-                        spread = 90,
-                        speed = 0.5f,
-                        maxSpeed = 2f,
-                        timeToLive = 2000,
-                        position = Position.Relative(0.5, 0.0),
-                        emitter = Emitter(duration = 2000).max(200),
-                        colors = confettiColors
-                    )
-                ),
-                onKonfettiListener = object : OnKonfettiListener {
-                    override fun onKonfettiEnded() {
-                        showConfetti = false
+            // ── 筛选标签 ──
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = filter == TodoFilter.ALL,
+                    onClick = { filter = TodoFilter.ALL },
+                    label = { Text("全部") }
+                )
+                FilterChip(
+                    selected = filter == TodoFilter.ACTIVE,
+                    onClick = { filter = TodoFilter.ACTIVE },
+                    label = { Text("进行中") }
+                )
+                FilterChip(
+                    selected = filter == TodoFilter.COMPLETED,
+                    onClick = { filter = TodoFilter.COMPLETED },
+                    label = { Text("已完成") }
+                )
+            }
+
+            // ── 列表 ──
+            if (displayTodos.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = when (filter) {
+                                TodoFilter.COMPLETED -> Icons.Default.CheckCircle
+                                TodoFilter.ACTIVE -> Icons.Default.TaskAlt
+                                TodoFilter.ALL -> Icons.Default.Inbox
+                            },
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            when (filter) {
+                                TodoFilter.COMPLETED -> "还没有已完成的任务"
+                                TodoFilter.ACTIVE -> "所有任务都完成啦！"
+                                TodoFilter.ALL -> "点击下方按钮添加你的第一个任务"
+                            },
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
-            )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(displayTodos, key = { it.id }) { todo ->
+                        TodoCard(
+                            todo = todo,
+                            onToggle = { viewModel.toggleTodo(todo.id) },
+                            onDelete = { viewModel.deleteTodo(todo.id) }
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -348,6 +274,13 @@ private fun TodoCard(
                         )
                     }
                 }
+            }
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Default.Delete,
+                    "删除",
+                    tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                )
             }
         }
     }

@@ -64,15 +64,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
-    // Konfetti
-    implementation(libs.konfetti.compose)
-
-    // Shimmer
-    implementation(libs.compose.shimmer)
-
-    // Drag-Drop-Swipe
-    implementation(libs.drag.drop.swipe.lazycolumn)
-
     // Core
     implementation(libs.androidx.core.ktx)
 
